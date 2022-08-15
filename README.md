@@ -150,7 +150,7 @@
 
 <br />
 
-## 협업 규칙
+## 프로젝트 참고 문서
 
 [프로젝트 문서](https://prgrms.notion.site/30ebf14edf1b400298a1350cc8d6f9ab)
 
