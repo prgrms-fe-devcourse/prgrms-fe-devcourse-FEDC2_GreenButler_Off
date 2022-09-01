@@ -4,9 +4,9 @@ import { IMAGE_URLS } from 'utils/constants/images';
 import { Image, Button, Text } from 'components';
 import { Link } from 'react-router-dom';
 
-const NofoundWrapper = styled.div`
+const NotfoundWrapper = styled.div`
   width: 100%;
-  height: 100%;
+  height: 100vh;
   background-color: ${theme.color.backgroundGreen};
   display: flex;
   flex-direction: column;
@@ -44,7 +44,7 @@ const ButtonWrapper = styled.div`
 const NotFoundPage = () => {
   return (
     <>
-      <NofoundWrapper>
+      <NotfoundWrapper>
         <ContentWrapper>
           <Inner>
             <Image width={55} height={55} src={IMAGE_URLS.FLOWERPOT} />
@@ -56,7 +56,6 @@ const NotFoundPage = () => {
             </Description>
           </Inner>
           <Link to="/">
-            {' '}
             <ButtonWrapper>
               <Button fontSize="18px" height="60px">
                 홈으로 이동하기
@@ -64,7 +63,7 @@ const NotFoundPage = () => {
             </ButtonWrapper>
           </Link>
         </ContentWrapper>
-      </NofoundWrapper>
+      </NotfoundWrapper>
     </>
   );
 };
