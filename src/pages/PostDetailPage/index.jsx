@@ -3,7 +3,7 @@ import PostItem from 'pages/MainPage/PostItem';
 import { Avatar, Modal, PageWrapper } from 'components';
 import IconButton from 'components/basic/Icon/IconButton';
 import theme from 'styles/theme';
-import { useRef, useCallback, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import useLocalToken from 'hooks/useLocalToken';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getPostData } from 'utils/apis/postApi';
@@ -34,52 +34,46 @@ const PostDetailPage = () => {
     })();
   }, []);
 
-  const handleSubmit = useCallback(
-    async (e) => {
-      e.preventDefault();
-      if (!localToken) {
-        setLoginModalOn(true);
-        return;
-      }
-      if (!inputRef.current.value) {
-        return;
-      }
-      const newComment = await onAddComment(post._id, inputRef.current.value);
-      setPost({
-        ...post,
-        comments: [...post.comments, newComment],
-      });
-      setInputHeight('30px');
-      inputRef.current.value = '';
-      if (currentUser.id !== post.author._id) {
-        await setNotification(localToken, COMMENT, newComment._id, post.author._id, post._id);
-      }
-    },
-    [post, localToken, currentUser.id, onAddComment],
-  );
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!localToken) {
+      setLoginModalOn(true);
+      return;
+    }
+    if (!inputRef.current.value) {
+      return;
+    }
+    const newComment = await onAddComment(post._id, inputRef.current.value);
+    setPost({
+      ...post,
+      comments: [...post.comments, newComment],
+    });
+    setInputHeight('30px');
+    inputRef.current.value = '';
+    if (currentUser.id !== post.author._id) {
+      await setNotification(localToken, COMMENT, newComment._id, post.author._id, post._id);
+    }
+  };
 
-  const handleResizeInputHeight = useCallback(() => {
+  const handleResizeInputHeight = () => {
     const { value, scrollHeight } = inputRef.current;
     if (value.length === 0) {
       setInputHeight('30px');
       return;
     }
     setInputHeight(scrollHeight + 'px');
-  }, [inputRef]);
+  };
 
-  const handleAvatarClick = useCallback(
-    (userId) => {
-      navigate(`/user/${userId}`);
-    },
-    [navigate],
-  );
+  const handleClickAvatar = (userId) => {
+    navigate(`/user/${userId}`);
+  };
 
-  const handleMoreClick = useCallback((commentId) => {
+  const handleClickMore = (commentId) => {
     setCommentModalOn(true);
     commentIdToDelete.current = commentId;
-  }, []);
+  };
 
-  const handleDeleteComment = useCallback(async () => {
+  const handleDeleteComment = async () => {
     setCommentModalOn(false);
     if (commentIdToDelete.current) {
       await onDeleteComment(commentIdToDelete.current);
@@ -91,12 +85,12 @@ const PostDetailPage = () => {
         comments: nextComments,
       });
     }
-  }, [post, onDeleteComment]);
+  };
 
-  const handleCloseModal = useCallback(() => {
+  const handleCloseModal = () => {
     setLoginModalOn(false);
     setCommentModalOn(false);
-  }, []);
+  };
 
   return (
     <>
@@ -117,7 +111,7 @@ const PostDetailPage = () => {
               {post.comments
                 .map(({ _id: commentId, author: { _id, image, fullName }, comment, createdAt }) => (
                   <CommentItem key={commentId}>
-                    <UserAvatar src={image} onClick={() => handleAvatarClick(_id)} />
+                    <UserAvatar src={image} onClick={() => handleClickAvatar(_id)} />
                     <Content>
                       <MetaInformation>
                         <UserNameText>{fullName}</UserNameText>
@@ -130,7 +124,7 @@ const PostDetailPage = () => {
                         name={MORE}
                         size={20}
                         style={MoreButtonStyle}
-                        onClick={() => handleMoreClick(commentId)}
+                        onClick={() => handleClickMore(commentId)}
                       />
                     )}
                   </CommentItem>

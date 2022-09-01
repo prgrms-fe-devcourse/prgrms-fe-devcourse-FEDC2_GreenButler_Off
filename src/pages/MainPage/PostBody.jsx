@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { useCallback, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { Image, Text } from 'components';
@@ -44,7 +44,7 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
     }
   }, [currentUser, likes]);
 
-  const navigateToDetailPage = useCallback(() => {
+  const navigateToDetailPage = () => {
     if (isDetailPage) {
       return;
     }
@@ -55,9 +55,9 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
         index,
       },
     });
-  }, [setCurrentPostIndex, index, postId, post, isDetailPage, navigate]);
+  };
 
-  const handleClickHeart = useCallback(async () => {
+  const handleClickHeart = async () => {
     if (!token) {
       setModalOn(true);
       return;
@@ -80,27 +80,24 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
         setLikeId('');
       }
     }
-  }, [onHeart, heartCount, postId, likeId, author._id, currentUser, token]);
+  };
 
-  const handleClickTag = useCallback(
-    (tag) => {
-      setCurrentPostIndex(index + 1);
-      navigate(`/tag/${tag.slice(1)}`, {
-        state: {
-          tag,
-        },
-      });
-    },
-    [index, setCurrentPostIndex, navigate],
-  );
+  const handleClickTag = (tag) => {
+    setCurrentPostIndex(index + 1);
+    navigate(`/tag/${tag.slice(1)}`, {
+      state: {
+        tag,
+      },
+    });
+  };
 
-  const handleClickMore = useCallback(() => {
+  const handleClickMore = () => {
     setIsShown(true);
-  }, []);
+  };
 
-  const handleCloseModal = useCallback(() => {
+  const handleCloseModal = () => {
     setModalOn(false);
-  }, []);
+  };
 
   return (
     <Container>
