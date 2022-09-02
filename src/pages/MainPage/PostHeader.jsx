@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Profile, Modal } from 'components';
 import { useUserContext } from 'contexts/UserContext';
@@ -51,9 +51,9 @@ const PostHeader = ({ post, isDetailPage }) => {
     setIsModal(false);
   };
 
-  const isMyPost = () => {
+  const isMyPost = useMemo(() => {
     return _id === currentUser.id && isDetailPage;
-  };
+  }, [_id, currentUser.id, isDetailPage]);
 
   return (
     <>
