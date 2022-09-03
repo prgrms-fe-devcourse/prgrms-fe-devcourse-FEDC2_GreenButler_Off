@@ -26,8 +26,8 @@ export const UserContext = createContext(initialUserData);
 export const useUserContext = () => useContext(UserContext);
 
 const UserProvider = ({ children }) => {
-  const [{ currentUser, isLoading }, dispatch] = useReducer(reducer, initialUserData); // 데이터의 갱신은 reducer 함수로 관리한다.
-  const [localToken] = useLocalToken(); // JWT 토큰
+  const [{ currentUser, isLoading }, dispatch] = useReducer(reducer, initialUserData); 
+  const [localToken] = useLocalToken(); 
   const {
     handleGetCurrentUser,
     handleLogin,
@@ -50,7 +50,7 @@ const UserProvider = ({ children }) => {
       dispatch({ type: LOADING_ON });
       const { user, token } = await handleLogin(data);
       if (token) {
-        dispatch({ type: LOGIN, payload: user }); // 로그인 성공 시, currentUser의 정보 갱신
+        dispatch({ type: LOGIN, payload: user }); 
       }
       dispatch({ type: LOADING_OFF });
     },
@@ -63,7 +63,7 @@ const UserProvider = ({ children }) => {
       const res = await handleSignup(data);
 
       if (res.token) {
-        dispatch({ type: SIGNUP, payload: res.user }); // 회원가입 성공 시, currentUser의 정보 갱신
+        dispatch({ type: SIGNUP, payload: res.user }); 
       }
       dispatch({ type: LOADING_OFF });
     },
@@ -73,11 +73,10 @@ const UserProvider = ({ children }) => {
   const onLogout = useCallback(async () => {
     dispatch({ type: LOADING_ON });
     handleLogout();
-    dispatch({ type: LOGOUT }); // 로그아웃 후, currentUser의 정보 갱신(초기화)
+    dispatch({ type: LOGOUT }); 
     dispatch({ type: LOADING_OFF });
   }, [handleLogout]);
 
-  // 특정 유저를 팔로우한 경우, currentUser의 정보 갱신
   const onFollow = useCallback(
     async (payload = { userId: '', followId: '' }) => {
       const data = await handlefollow(payload.userId);
@@ -86,7 +85,6 @@ const UserProvider = ({ children }) => {
     [handlefollow],
   );
 
-  // 특정 유저를 언팔로우한 경우, currentUser의 정보 갱신
   const onUnfollow = useCallback(
     (payload = { unfollowId: '' }) => {
       handleUnFollow(payload.unfollowId);
@@ -95,7 +93,6 @@ const UserProvider = ({ children }) => {
     [handleUnFollow],
   );
 
-  //현재 유저의 닉네임을 수정
   const onChangeFullName = useCallback(
     (payload = { fullName: '', username: '' }) => {
       const { fullName, username } = payload;
@@ -105,7 +102,6 @@ const UserProvider = ({ children }) => {
     [handlechangeUserName],
   );
 
-  //현재 유저의 프로필 사진 수정
   const onChangeProfile = useCallback(
     (payload = { image: '' }) => {
       handlechangeProfile(payload);

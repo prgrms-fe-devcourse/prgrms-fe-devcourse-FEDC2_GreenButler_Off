@@ -42,13 +42,12 @@ const useHandles = () => {
 
   const handleLogin = useCallback(
     async (inputData) => {
-      // JWT 토큰 및 로컬 스토리지 초기화
       setLocalToken('');
       localStorage.clear();
       const res = await login(inputData);
       if (res.data.token) {
-        setLocalToken(res.data.token); // 로그인 성공 시, JWT 토큰 갱신
-        navigate('/', { replace: true }); // 메인페이지로 이동
+        setLocalToken(res.data.token); 
+        navigate('/', { replace: true }); 
       }
       return { user: res.data.user, token: res.data.token };
     },
@@ -57,13 +56,11 @@ const useHandles = () => {
 
   const handleSignup = useCallback(
     async (inputData) => {
-      // JWT 토큰 및 로컬 스토리지 초기화
       setLocalToken('');
       localStorage.clear();
       const { data, error } = await signup(inputData);
       if (data.token) {
-        setLocalToken(data.token); // 회원가입 성공 시, JWT 토큰 갱신
-        //navigate('/', { replace: true }); // 메인 페이지로 이동 (로그인을 건너뛴다)
+        setLocalToken(data.token); 
         await login(inputData);
       }
       return data;
@@ -75,13 +72,11 @@ const useHandles = () => {
     if (localToken) {
       await logout(localToken);
     }
-    // JWT 토큰 및 로컬 스토리지 초기화
     setLocalToken('');
     localStorage.clear();
-    navigate('/login', { replace: true }); // 로그인 페이지로 이동
+    navigate('/login', { replace: true }); 
   }, [navigate, localToken, setLocalToken]);
 
-  //회원 이름수정
   const handlechangeUserName = useCallback(
     async (fullName, username) => {
       if (localToken && fullName) {
@@ -91,7 +86,6 @@ const useHandles = () => {
     [localToken],
   );
 
-  //회원 프로필 사진 수정
   const handlechangeProfile = useCallback(
     async ({ image }) => {
       const byteString = atob(image.split(',')[1]);
@@ -117,7 +111,6 @@ const useHandles = () => {
     [localToken],
   );
 
-  //회원 비밀번호 수정
   const handlechangePassword = useCallback(
     async (password) => {
       if (localToken && password) {
@@ -127,7 +120,6 @@ const useHandles = () => {
     [localToken],
   );
 
-  //팔로우
   const handlefollow = useCallback(
     async (userId) => {
       if (localToken && userId) {
@@ -139,7 +131,6 @@ const useHandles = () => {
     [localToken],
   );
 
-  //언팔
   const handleUnFollow = useCallback(
     async (followId) => {
       if (localToken && followId) {
@@ -149,7 +140,6 @@ const useHandles = () => {
     [localToken],
   );
 
-  // 포스트 등록
   const handleAddPost = useCallback(
     async (title, image) => {
       const formData = await objectToForm({ title, image, channelId });
