@@ -18,10 +18,10 @@ const MainPage = () => {
   useEffect(() => {
     const limit = prevPostIndex ? prevPostIndex : LIMIT;
     (async () => {
-      const nextPosts = await getPostsPart({
+      const { data: nextPosts } = await getPostsPart({
         offset,
         limit,
-      }).then((res) => res.data);
+      });
       setPosts(nextPosts);
       setMax(nextPosts[0].channel.posts.length);
       setOffset(prevPostIndex ? prevPostIndex : LIMIT);
@@ -61,7 +61,7 @@ const MainPage = () => {
       observer.observe(targetRef.current);
     }
     return () => observer && observer.disconnect();
-  }, [targetRef, onIntersect]);
+  }, [onIntersect]);
 
   return (
     <PageWrapper header nav info>
