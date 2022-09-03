@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { PageWrapper } from 'components';
+import { PageWrapper, Spinner } from 'components';
 import { getPostsPart } from 'utils/apis/postApi';
 import PostItem from './PostItem';
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -74,6 +74,7 @@ const MainPage = () => {
           );
         })}
       </PostList>
+      <Spinner loading={isLoading} />
     </PageWrapper>
   );
 };
