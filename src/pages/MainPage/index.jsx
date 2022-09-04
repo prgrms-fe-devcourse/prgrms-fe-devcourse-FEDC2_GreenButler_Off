@@ -13,27 +13,18 @@ const MainPage = () => {
   const [offset, setOffset] = useState(0);
   const [max, setMax] = useState(0);
   const targetRef = useRef(null);
-  const [prevPostIndex, setPrevPostIndex] = useScrollPosition();
 
   useEffect(() => {
-    const limit = prevPostIndex ? prevPostIndex : LIMIT;
     (async () => {
       const { data: nextPosts } = await getPostsPart({
         offset,
-        limit,
+        limit: LIMIT,
       });
       setPosts(nextPosts);
       setMax(nextPosts[0].channel.posts.length);
-      setOffset(prevPostIndex ? prevPostIndex : LIMIT);
+      setOffset(LIMIT);
     })();
   }, []);
-
-  useEffect(() => {
-    if (targetRef.current && prevPostIndex) {
-      window.scrollTo(0, document.body.scrollHeight);
-      setPrevPostIndex(0);
-    }
-  }, [targetRef, prevPostIndex, setPrevPostIndex]);
 
   const onIntersect = useCallback(
     async ([entry], observer) => {
