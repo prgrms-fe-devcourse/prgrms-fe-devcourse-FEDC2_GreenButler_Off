@@ -2,8 +2,7 @@ import styled from '@emotion/styled';
 import { PageWrapper, Spinner } from 'components';
 import { getPostsPart } from 'utils/apis/postApi';
 import PostItem from './PostItem';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import useScrollPosition from 'hooks/useScrollPosition';
+import { useState, useEffect, useRef } from 'react';
 
 const LIMIT = 5;
 
@@ -22,26 +21,23 @@ const MainPage = () => {
       });
       setPosts(nextPosts);
       setMax(nextPosts[0].channel.posts.length);
-      setOffset(LIMIT);
+      setOffset(offset + LIMIT);
     })();
   }, []);
 
-  const onIntersect = useCallback(
-    async ([entry], observer) => {
-      if (entry.isIntersecting && !isLoading && offset < max) {
-        observer.disconnect();
-        setIsLoading(true);
-        setOffset(offset + 5);
-        const nextPosts = await getPostsPart({
-          offset,
-          limit: LIMIT,
-        }).then((res) => res.data);
-        setPosts([...posts, ...nextPosts]);
-        setIsLoading(false);
-      }
-    },
-    [isLoading, offset, max, posts],
-  );
+  const onIntersect = async ([entry], observer) => {
+    if (entry.isIntersecting && !isLoading && offset < max) {
+      observer.disconnect();
+      setIsLoading(true);
+      setOffset(offset + 5);
+      const { data: nextPosts } = await getPostsPart({
+        offset,
+        limit: LIMIT,
+      });
+      setPosts([...posts, ...nextPosts]);
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     let observer;
@@ -52,7 +48,7 @@ const MainPage = () => {
       observer.observe(targetRef.current);
     }
     return () => observer && observer.disconnect();
-  }, [onIntersect]);
+  }, [posts.length]);
 
   return (
     <PageWrapper header nav info>
