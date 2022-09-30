@@ -3,21 +3,20 @@ import PostItem from 'pages/MainPage/PostItem';
 import { Avatar, Modal, PageWrapper } from 'components';
 import IconButton from 'components/basic/Icon/IconButton';
 import theme from 'styles/theme';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import useLocalToken from 'hooks/useLocalToken';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getPostData } from 'utils/apis/postApi';
 import { useUserContext } from 'contexts/UserContext';
 import { setNotification } from 'utils/apis/userApi';
 import displayedAt from 'utils/functions/displayedAt';
 import { MORE } from 'utils/constants/icons/names';
 import { COMMENT } from 'utils/constants/notificationTypes';
 import LoginRequireModal from 'components/Modal/customs/LoginRequireModal';
+import useSWR from 'swr';
 
 const PostDetailPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [post, setPost] = useState(null);
   const [inputHeight, setInputHeight] = useState('30px');
   const inputRef = useRef(null);
   const [localToken] = useLocalToken();
@@ -26,13 +25,8 @@ const PostDetailPage = () => {
   const [commentModalOn, setCommentModalOn] = useState(false);
   const commentIdToDelete = useRef('');
 
-  useEffect(() => {
-    const postId = location.pathname.split('/')[3];
-    (async () => {
-      const initialPost = await getPostData(postId).then((res) => res.data);
-      setPost(initialPost);
-    })();
-  }, []);
+  const postId = location.pathname.split('/')[3];
+  const { data: post, mutate } = useSWR(`/posts/${postId}`);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,7 +38,7 @@ const PostDetailPage = () => {
       return;
     }
     const newComment = await onAddComment(post._id, inputRef.current.value);
-    setPost({
+    mutate({
       ...post,
       comments: [...post.comments, newComment],
     });
@@ -77,12 +71,9 @@ const PostDetailPage = () => {
     setCommentModalOn(false);
     if (commentIdToDelete.current) {
       await onDeleteComment(commentIdToDelete.current);
-      const nextComments = post.comments.filter(
-        (comment) => comment._id !== commentIdToDelete.current,
-      );
-      setPost({
+      mutate({
         ...post,
-        comments: nextComments,
+        comments: post.comments.filter(({ _id }) => _id !== commentIdToDelete.current),
       });
     }
   };
