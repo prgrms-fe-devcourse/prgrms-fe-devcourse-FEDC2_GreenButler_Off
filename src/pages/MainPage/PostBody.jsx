@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { Image, Text } from 'components';
@@ -15,13 +15,15 @@ import IconButton from 'components/basic/Icon/IconButton';
 import { COMMENT, HEART, HEART_RED } from 'utils/constants/icons/names';
 import { LIKE } from 'utils/constants/notificationTypes';
 import LoginRequireModal from 'components/Modal/customs/LoginRequireModal';
+import { mutate } from 'swr';
+import { swrOptions } from 'utils/apis/swrOptions';
 
 const PostBody = ({ index, post, isDetailPage = false }) => {
   const { _id: postId, image, likes, comments, createdAt, author } = post || {};
   const { content, tags } = JSON.parse(post?.title);
   const [onHeart, setOnHeart] = useState(false);
   const [heartCount, setHeartCount] = useState(likes.length);
-  const [likeId, setLikeId] = useState('');
+  const likeId = useRef('');
   const [isShown, setIsShown] = useState(false);
   const [modalOn, setModalOn] = useState(false);
   const [token] = useLocalToken();
@@ -30,19 +32,19 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    let likeId;
-    const isMyLikePost =
-      likes.filter(({ user, _id }) => {
-        if (user === currentUser.id) {
-          likeId = _id;
-          return true;
-        }
-      }).length > 0;
-    if (isMyLikePost) {
+    const myLikeIndex = likes.findIndex(({ user }) => user === currentUser.id);
+    if (myLikeIndex > -1) {
       setOnHeart(true);
-      setLikeId(likeId);
+      likeId.current = likes[myLikeIndex]._id;
+    } else {
+      setOnHeart(false);
+      likeId.current = '';
     }
-  }, [currentUser, likes]);
+  }, [currentUser, likes.length]);
+
+  useEffect(() => {
+    setHeartCount(likes.length);
+  }, [likes.length]);
 
   const navigateToDetailPage = () => {
     if (isDetailPage) {
@@ -68,16 +70,16 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
       setHeartCount(heartCount + 1);
       if (token && postId) {
         const like = await setLike(token, postId).then((res) => res.data);
-        setLikeId(like._id);
+        likeId.current = like._id;
         if (currentUser.id !== author._id) {
-          await setNotification(token, LIKE, like._id, author._id, postId);
+          await setNotification(token, LIKE, likeId.current, author._id, postId);
         }
       }
     } else {
       setHeartCount(heartCount - 1);
-      if (token && likeId) {
-        await setDisLike(token, likeId).then((res) => res.data);
-        setLikeId('');
+      if (token && likeId.current) {
+        await setDisLike(token, likeId.current).then((res) => res.data);
+        likeId.current = '';
       }
     }
   };
@@ -99,9 +101,18 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
     setModalOn(false);
   };
 
+  const PrefetchPostData = () => {
+    !isDetailPage && mutate(`/posts/${postId}`, () => swrOptions.fetcher(`/posts/${postId}`));
+  };
+
   return (
     <Container>
-      <ImageWrapper onClick={navigateToDetailPage} isDetailPage={isDetailPage}>
+      <ImageWrapper
+        onClick={navigateToDetailPage}
+        isDetailPage={isDetailPage}
+        onMouseEnter={PrefetchPostData}
+        onTouchStart={PrefetchPostData}
+      >
         <Image
           src={image ? image : IMAGE_URLS.POST_DEFAULT_IMG}
           defaultImageUrl={IMAGE_URLS.POST_DEFAULT_IMG}
