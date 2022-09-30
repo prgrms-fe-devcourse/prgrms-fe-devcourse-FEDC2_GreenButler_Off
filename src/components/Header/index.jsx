@@ -48,17 +48,6 @@ export const Header = ({ prev, title, info, complete, onComplete }) => {
     navigate(-1);
   };
 
-  const [token] = useLocalToken();
-  useEffect(() => {
-    const initNotifications = async () => {
-      const fetchedNotifications = await getNotifications(token);
-      setIsSeen(
-        fetchedNotifications.data.length === 0 ? isSeen : fetchedNotifications.data[0].seen,
-      );
-    };
-    initNotifications();
-  }, [token, isSeen]);
-
   return (
     <HeaderContainer top height={headerHeight}>
       <div>{prev && <Icon.Button name="ARROW_LEFT" size={20} onClick={onClickPrev} />}</div>
@@ -68,11 +57,11 @@ export const Header = ({ prev, title, info, complete, onComplete }) => {
       <InnerRight>
         {info && (
           <>
-            {token && (
+            {
               <Badge dot={isSeen}>
                 <Icon.Link to="/user/notification" name="NOTIFICATION" size={30} />
               </Badge>
-            )}
+            }
             <Icon.Link to="/user/myinfo" name="MY_INFO" size={30} />
           </>
         )}
