@@ -3,6 +3,7 @@ import { PageWrapper, Spinner } from 'components';
 import { getPostsPart } from 'utils/apis/postApi';
 import PostItem from './PostItem';
 import { useState, useEffect, useRef } from 'react';
+import useSWR from 'swr';
 
 const LIMIT = 5;
 
@@ -13,17 +14,17 @@ const MainPage = () => {
   const [max, setMax] = useState(0);
   const targetRef = useRef(null);
 
+  const { data: initialPosts } = useSWR(
+    `/posts/channel/${process.env.REACT_APP_CHANNEL_ID_TOTAL}?offset=0&limit=5`,
+  );
+
   useEffect(() => {
-    (async () => {
-      const { data: nextPosts } = await getPostsPart({
-        offset,
-        limit: LIMIT,
-      });
-      setPosts(nextPosts);
-      setMax(nextPosts[0].channel.posts.length);
+    if (initialPosts) {
+      setPosts([...initialPosts]);
+      setMax(initialPosts[0].channel.posts.length);
       setOffset(offset + LIMIT);
-    })();
-  }, []);
+    }
+  }, [initialPosts]);
 
   const onIntersect = async ([entry], observer) => {
     if (entry.isIntersecting && !isLoading && offset < max) {
