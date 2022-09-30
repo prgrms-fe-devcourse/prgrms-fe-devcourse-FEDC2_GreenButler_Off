@@ -15,7 +15,7 @@ const MainPage = () => {
   const targetRef = useRef(null);
 
   const { data: initialPosts } = useSWR(
-    `/posts/channel/${process.env.REACT_APP_CHANNEL_ID_TOTAL}?offset=0&limit=5`,
+    `/posts/channel/${process.env.REACT_APP_CHANNEL_ID}?offset=0&limit=5`,
   );
 
   useEffect(() => {

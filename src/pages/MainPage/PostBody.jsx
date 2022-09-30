@@ -7,7 +7,6 @@ import theme from 'styles/theme';
 import { setLike, setDisLike } from 'utils/apis/postApi';
 import { setNotification } from 'utils/apis/userApi';
 import useLocalToken from 'hooks/useLocalToken';
-import useScrollPosition from 'hooks/useScrollPosition';
 import { useUserContext } from 'contexts/UserContext';
 import { IMAGE_URLS } from 'utils/constants/images';
 import displayedAt from 'utils/functions/displayedAt';
@@ -15,7 +14,7 @@ import IconButton from 'components/basic/Icon/IconButton';
 import { COMMENT, HEART, HEART_RED } from 'utils/constants/icons/names';
 import { LIKE } from 'utils/constants/notificationTypes';
 import LoginRequireModal from 'components/Modal/customs/LoginRequireModal';
-import { mutate } from 'swr';
+import useSWR, { mutate } from 'swr';
 import { swrOptions } from 'utils/apis/swrOptions';
 
 const PostBody = ({ index, post, isDetailPage = false }) => {
@@ -28,8 +27,10 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
   const [modalOn, setModalOn] = useState(false);
   const [token] = useLocalToken();
   const { currentUser } = useUserContext();
-  const [, setCurrentPostIndex] = useScrollPosition();
   const navigate = useNavigate();
+  const { data: initialPosts } = useSWR(
+    `/posts/channel/${process.env.REACT_APP_CHANNEL_ID}?offset=0&limit=5`,
+  );
 
   useEffect(() => {
     const myLikeIndex = likes.findIndex(({ user }) => user === currentUser.id);
@@ -50,7 +51,6 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
     if (isDetailPage) {
       return;
     }
-    setCurrentPostIndex(index + 1);
     navigate(`/post/detail/${postId}`, {
       state: {
         post,
@@ -69,23 +69,53 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
     if (!onHeart) {
       setHeartCount(heartCount + 1);
       if (token && postId) {
-        const like = await setLike(token, postId).then((res) => res.data);
-        likeId.current = like._id;
+        const { data } = await setLike(token, postId);
+        likeId.current = data._id;
         if (currentUser.id !== author._id) {
           await setNotification(token, LIKE, likeId.current, author._id, postId);
         }
+        index < 5 && mutateInitialPosts('LIKE', data);
       }
     } else {
       setHeartCount(heartCount - 1);
       if (token && likeId.current) {
-        await setDisLike(token, likeId.current).then((res) => res.data);
+        await setDisLike(token, likeId.current);
         likeId.current = '';
+        index < 5 && mutateInitialPosts('DISLIKE');
       }
     }
   };
 
+  const mutateInitialPosts = (type, like) => {
+    const currentPost = initialPosts[index];
+    let updatedPost;
+
+    switch (type) {
+      case 'LIKE': {
+        updatedPost = {
+          ...currentPost,
+          likes: [...currentPost.likes, like],
+        };
+        break;
+      }
+      case 'DISLIKE': {
+        updatedPost = {
+          ...currentPost,
+          likes: currentPost.likes.filter(({ user }) => user !== currentUser.id),
+        };
+        break;
+      }
+    }
+    mutate(
+      `/posts/channel/${process.env.REACT_APP_CHANNEL_ID}?offset=0&limit=5`,
+      [...initialPosts.slice(0, index), updatedPost, ...initialPosts.slice(index + 1)],
+      {
+        revalidate: false,
+      },
+    );
+  };
+
   const handleClickTag = (tag) => {
-    setCurrentPostIndex(index + 1);
     navigate(`/tag/${tag.slice(1)}`, {
       state: {
         tag,
