@@ -3,7 +3,7 @@ import { PageWrapper, Spinner } from 'components';
 import { getPostsPart } from 'utils/apis/postApi';
 import PostItem from './PostItem';
 import { useState, useEffect, useRef } from 'react';
-import useSWR from 'swr';
+import useSWRPostList from 'hooks/useSWRPostList';
 
 const LIMIT = 5;
 
@@ -13,10 +13,7 @@ const MainPage = () => {
   const [offset, setOffset] = useState(0);
   const [max, setMax] = useState(0);
   const targetRef = useRef(null);
-
-  const { data: initialPosts } = useSWR(
-    `/posts/channel/${process.env.REACT_APP_CHANNEL_ID}?offset=0&limit=5`,
-  );
+  const { data: initialPosts } = useSWRPostList();
 
   useEffect(() => {
     if (initialPosts) {
