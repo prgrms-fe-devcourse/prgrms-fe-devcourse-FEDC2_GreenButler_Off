@@ -21,13 +21,15 @@ import {
   ADD_COMMENT,
   DELETE_COMMENT,
 } from './types';
+import { postListKey } from 'hooks/useSWRPostList';
+import { mutate } from 'swr';
 
 export const UserContext = createContext(initialUserData);
 export const useUserContext = () => useContext(UserContext);
 
 const UserProvider = ({ children }) => {
-  const [{ currentUser, isLoading }, dispatch] = useReducer(reducer, initialUserData); 
-  const [localToken] = useLocalToken(); 
+  const [{ currentUser, isLoading }, dispatch] = useReducer(reducer, initialUserData);
+  const [localToken] = useLocalToken();
   const {
     handleGetCurrentUser,
     handleLogin,
@@ -50,7 +52,7 @@ const UserProvider = ({ children }) => {
       dispatch({ type: LOADING_ON });
       const { user, token } = await handleLogin(data);
       if (token) {
-        dispatch({ type: LOGIN, payload: user }); 
+        dispatch({ type: LOGIN, payload: user });
       }
       dispatch({ type: LOADING_OFF });
     },
@@ -63,7 +65,7 @@ const UserProvider = ({ children }) => {
       const res = await handleSignup(data);
 
       if (res.token) {
-        dispatch({ type: SIGNUP, payload: res.user }); 
+        dispatch({ type: SIGNUP, payload: res.user });
       }
       dispatch({ type: LOADING_OFF });
     },
@@ -73,7 +75,7 @@ const UserProvider = ({ children }) => {
   const onLogout = useCallback(async () => {
     dispatch({ type: LOADING_ON });
     handleLogout();
-    dispatch({ type: LOGOUT }); 
+    dispatch({ type: LOGOUT });
     dispatch({ type: LOADING_OFF });
   }, [handleLogout]);
 
@@ -134,6 +136,7 @@ const UserProvider = ({ children }) => {
     async (title, image) => {
       const post = await handleAddPost(title, image);
       dispatch({ type: ADD_POST, payload: post });
+      mutate(postListKey, undefined, true);
     },
     [handleAddPost],
   );
