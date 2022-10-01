@@ -14,8 +14,9 @@ import IconButton from 'components/basic/Icon/IconButton';
 import { COMMENT, HEART, HEART_RED } from 'utils/constants/icons/names';
 import { LIKE } from 'utils/constants/notificationTypes';
 import LoginRequireModal from 'components/Modal/customs/LoginRequireModal';
-import useSWR, { mutate } from 'swr';
+import useSWRPostList from 'hooks/useSWRPostList';
 import { swrOptions } from 'utils/apis/swrOptions';
+import { mutate as mutatePostDetail } from 'swr';
 
 const PostBody = ({ index, post, isDetailPage = false }) => {
   const { _id: postId, image, likes, comments, createdAt, author } = post || {};
@@ -28,9 +29,7 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
   const [token] = useLocalToken();
   const { currentUser } = useUserContext();
   const navigate = useNavigate();
-  const { data: initialPosts } = useSWR(
-    `/posts/channel/${process.env.REACT_APP_CHANNEL_ID}?offset=0&limit=5`,
-  );
+  const { mutateLike } = useSWRPostList();
 
   useEffect(() => {
     const myLikeIndex = likes.findIndex(({ user }) => user === currentUser.id);
@@ -74,45 +73,16 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
         if (currentUser.id !== author._id) {
           await setNotification(token, LIKE, likeId.current, author._id, postId);
         }
-        index < 5 && mutateInitialPosts('LIKE', data);
+        index < 5 && mutateLike('LIKE', index, data);
       }
     } else {
       setHeartCount(heartCount - 1);
       if (token && likeId.current) {
         await setDisLike(token, likeId.current);
         likeId.current = '';
-        index < 5 && mutateInitialPosts('DISLIKE');
+        index < 5 && mutateLike('DISLIKE', index);
       }
     }
-  };
-
-  const mutateInitialPosts = (type, like) => {
-    const currentPost = initialPosts[index];
-    let updatedPost;
-
-    switch (type) {
-      case 'LIKE': {
-        updatedPost = {
-          ...currentPost,
-          likes: [...currentPost.likes, like],
-        };
-        break;
-      }
-      case 'DISLIKE': {
-        updatedPost = {
-          ...currentPost,
-          likes: currentPost.likes.filter(({ user }) => user !== currentUser.id),
-        };
-        break;
-      }
-    }
-    mutate(
-      `/posts/channel/${process.env.REACT_APP_CHANNEL_ID}?offset=0&limit=5`,
-      [...initialPosts.slice(0, index), updatedPost, ...initialPosts.slice(index + 1)],
-      {
-        revalidate: false,
-      },
-    );
   };
 
   const handleClickTag = (tag) => {
@@ -132,7 +102,8 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
   };
 
   const PrefetchPostData = () => {
-    !isDetailPage && mutate(`/posts/${postId}`, () => swrOptions.fetcher(`/posts/${postId}`));
+    !isDetailPage &&
+      mutatePostDetail(`/posts/${postId}`, () => swrOptions.fetcher(`/posts/${postId}`));
   };
 
   return (
