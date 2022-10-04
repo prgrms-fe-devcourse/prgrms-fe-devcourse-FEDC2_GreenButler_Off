@@ -30,6 +30,7 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
   const { currentUser } = useUserContext();
   const navigate = useNavigate();
   const { mutateLike } = useSWRPostList();
+  const prefetchTimer = useRef(null);
 
   useEffect(() => {
     const myLikeIndex = likes.findIndex(({ user }) => user === currentUser.id);
@@ -102,8 +103,15 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
   };
 
   const PrefetchPostData = () => {
-    !isDetailPage &&
-      mutatePostDetail(`/posts/${postId}`, () => swrOptions.fetcher(`/posts/${postId}`));
+    if (!isDetailPage) {
+      prefetchTimer.current = setTimeout(() => {
+        mutatePostDetail(`/posts/${postId}`, () => swrOptions.fetcher(`/posts/${postId}`));
+      }, 500);
+    }
+  };
+
+  const cancelPrefetch = () => {
+    clearTimeout(prefetchTimer.current);
   };
 
   return (
@@ -112,6 +120,7 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
         onClick={navigateToDetailPage}
         isDetailPage={isDetailPage}
         onMouseEnter={PrefetchPostData}
+        onMouseLeave={cancelPrefetch}
         onTouchStart={PrefetchPostData}
       >
         <Image
