@@ -102,11 +102,11 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
     setModalOn(false);
   };
 
-  const PrefetchPostData = () => {
+  const prefetchPostData = () => {
     if (!isDetailPage) {
       prefetchTimer.current = setTimeout(() => {
         mutatePostDetail(`/posts/${postId}`, () => swrOptions.fetcher(`/posts/${postId}`));
-      }, 500);
+      }, 1000);
     }
   };
 
@@ -119,9 +119,10 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
       <ImageWrapper
         onClick={navigateToDetailPage}
         isDetailPage={isDetailPage}
-        onMouseEnter={PrefetchPostData}
+        onMouseEnter={prefetchPostData}
         onMouseLeave={cancelPrefetch}
-        onTouchStart={PrefetchPostData}
+        onTouchStart={prefetchPostData}
+        onTouchEnd={cancelPrefetch}
       >
         <Image
           src={image ? image : IMAGE_URLS.POST_DEFAULT_IMG}
