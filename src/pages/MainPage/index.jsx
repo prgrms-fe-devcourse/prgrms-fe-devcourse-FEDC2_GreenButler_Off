@@ -1,9 +1,9 @@
 import styled from '@emotion/styled';
-import { PageWrapper } from 'components';
+import { PageWrapper, Spinner } from 'components';
 import { getPostsPart } from 'utils/apis/postApi';
 import PostItem from './PostItem';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import useScrollPosition from 'hooks/useScrollPosition';
+import { useState, useEffect, useRef } from 'react';
+import useSWRPostList from 'hooks/useSWRPostList';
 
 const LIMIT = 5;
 
@@ -13,44 +13,29 @@ const MainPage = () => {
   const [offset, setOffset] = useState(0);
   const [max, setMax] = useState(0);
   const targetRef = useRef(null);
-  const [prevPostIndex, setPrevPostIndex] = useScrollPosition();
+  const { data: initialPosts } = useSWRPostList();
 
   useEffect(() => {
-    const limit = prevPostIndex ? prevPostIndex : LIMIT;
-    (async () => {
+    if (initialPosts) {
+      setPosts([...initialPosts]);
+      setMax(initialPosts[0].channel.posts.length);
+      setOffset(offset + LIMIT);
+    }
+  }, [initialPosts]);
+
+  const onIntersect = async ([entry], observer) => {
+    if (entry.isIntersecting && !isLoading && offset < max) {
+      observer.disconnect();
+      setIsLoading(true);
+      setOffset(offset + 5);
       const { data: nextPosts } = await getPostsPart({
         offset,
-        limit,
+        limit: LIMIT,
       });
-      setPosts(nextPosts);
-      setMax(nextPosts[0].channel.posts.length);
-      setOffset(prevPostIndex ? prevPostIndex : LIMIT);
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (targetRef.current && prevPostIndex) {
-      window.scrollTo(0, document.body.scrollHeight);
-      setPrevPostIndex(0);
+      setPosts([...posts, ...nextPosts]);
+      setIsLoading(false);
     }
-  }, [targetRef, prevPostIndex, setPrevPostIndex]);
-
-  const onIntersect = useCallback(
-    async ([entry], observer) => {
-      if (entry.isIntersecting && !isLoading && offset < max) {
-        observer.disconnect();
-        setIsLoading(true);
-        setOffset(offset + 5);
-        const nextPosts = await getPostsPart({
-          offset,
-          limit: LIMIT,
-        }).then((res) => res.data);
-        setPosts([...posts, ...nextPosts]);
-        setIsLoading(false);
-      }
-    },
-    [isLoading, offset, max, posts],
-  );
+  };
 
   useEffect(() => {
     let observer;
@@ -61,7 +46,7 @@ const MainPage = () => {
       observer.observe(targetRef.current);
     }
     return () => observer && observer.disconnect();
-  }, [onIntersect]);
+  }, [posts.length]);
 
   return (
     <PageWrapper header nav info>
@@ -74,6 +59,7 @@ const MainPage = () => {
           );
         })}
       </PostList>
+      <Spinner loading={isLoading} />
     </PageWrapper>
   );
 };

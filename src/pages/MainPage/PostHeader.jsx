@@ -7,8 +7,9 @@ import theme from 'styles/theme';
 import useLocalToken from 'hooks/useLocalToken';
 import IconButton from 'components/basic/Icon/IconButton';
 import { MORE } from 'utils/constants/icons/names';
+import useSWRPostList from 'hooks/useSWRPostList';
 
-const PostHeader = ({ post, isDetailPage }) => {
+const PostHeader = ({ index, post, isDetailPage }) => {
   const {
     _id: postId,
     author: { _id, image, fullName },
@@ -17,6 +18,7 @@ const PostHeader = ({ post, isDetailPage }) => {
   const navigate = useNavigate();
   const [isModal, setIsModal] = useState(false);
   const [localToken] = useLocalToken();
+  const { mutateDeletion } = useSWRPostList();
 
   const handleClickProfile = () => {
     navigate(`/user/${_id}`, {
@@ -44,6 +46,7 @@ const PostHeader = ({ post, isDetailPage }) => {
     if (localToken && postId) {
       await onDeletePost(postId);
       navigate(-1);
+      index < 5 && mutateDeletion(postId);
     }
   };
 

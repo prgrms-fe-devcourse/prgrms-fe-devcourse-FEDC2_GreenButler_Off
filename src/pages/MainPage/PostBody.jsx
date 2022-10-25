@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { Image, Text } from 'components';
@@ -7,7 +7,6 @@ import theme from 'styles/theme';
 import { setLike, setDisLike } from 'utils/apis/postApi';
 import { setNotification } from 'utils/apis/userApi';
 import useLocalToken from 'hooks/useLocalToken';
-import useScrollPosition from 'hooks/useScrollPosition';
 import { useUserContext } from 'contexts/UserContext';
 import { IMAGE_URLS } from 'utils/constants/images';
 import displayedAt from 'utils/functions/displayedAt';
@@ -15,40 +14,43 @@ import IconButton from 'components/basic/Icon/IconButton';
 import { COMMENT, HEART, HEART_RED } from 'utils/constants/icons/names';
 import { LIKE } from 'utils/constants/notificationTypes';
 import LoginRequireModal from 'components/Modal/customs/LoginRequireModal';
+import useSWRPostList from 'hooks/useSWRPostList';
+import { swrOptions } from 'utils/apis/swrOptions';
+import { mutate as mutatePostDetail } from 'swr';
 
 const PostBody = ({ index, post, isDetailPage = false }) => {
   const { _id: postId, image, likes, comments, createdAt, author } = post || {};
   const { content, tags } = JSON.parse(post?.title);
   const [onHeart, setOnHeart] = useState(false);
   const [heartCount, setHeartCount] = useState(likes.length);
-  const [likeId, setLikeId] = useState('');
+  const likeId = useRef('');
   const [isShown, setIsShown] = useState(false);
   const [modalOn, setModalOn] = useState(false);
   const [token] = useLocalToken();
   const { currentUser } = useUserContext();
-  const [, setCurrentPostIndex] = useScrollPosition();
   const navigate = useNavigate();
+  const { mutateLike } = useSWRPostList();
+  const prefetchTimer = useRef(null);
 
   useEffect(() => {
-    let likeId;
-    const isMyLikePost =
-      likes.filter(({ user, _id }) => {
-        if (user === currentUser.id) {
-          likeId = _id;
-          return true;
-        }
-      }).length > 0;
-    if (isMyLikePost) {
+    const myLikeIndex = likes.findIndex(({ user }) => user === currentUser.id);
+    if (myLikeIndex > -1) {
       setOnHeart(true);
-      setLikeId(likeId);
+      likeId.current = likes[myLikeIndex]._id;
+    } else {
+      setOnHeart(false);
+      likeId.current = '';
     }
-  }, [currentUser, likes]);
+  }, [currentUser, likes.length]);
+
+  useEffect(() => {
+    setHeartCount(likes.length);
+  }, [likes.length]);
 
   const navigateToDetailPage = () => {
     if (isDetailPage) {
       return;
     }
-    setCurrentPostIndex(index + 1);
     navigate(`/post/detail/${postId}`, {
       state: {
         post,
@@ -67,23 +69,24 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
     if (!onHeart) {
       setHeartCount(heartCount + 1);
       if (token && postId) {
-        const like = await setLike(token, postId).then((res) => res.data);
-        setLikeId(like._id);
+        const { data } = await setLike(token, postId);
+        likeId.current = data._id;
         if (currentUser.id !== author._id) {
-          await setNotification(token, LIKE, like._id, author._id, postId);
+          await setNotification(token, LIKE, likeId.current, author._id, postId);
         }
+        index < 5 && mutateLike('LIKE', index, data);
       }
     } else {
       setHeartCount(heartCount - 1);
-      if (token && likeId) {
-        await setDisLike(token, likeId).then((res) => res.data);
-        setLikeId('');
+      if (token && likeId.current) {
+        await setDisLike(token, likeId.current);
+        likeId.current = '';
+        index < 5 && mutateLike('DISLIKE', index);
       }
     }
   };
 
   const handleClickTag = (tag) => {
-    setCurrentPostIndex(index + 1);
     navigate(`/tag/${tag.slice(1)}`, {
       state: {
         tag,
@@ -99,9 +102,28 @@ const PostBody = ({ index, post, isDetailPage = false }) => {
     setModalOn(false);
   };
 
+  const prefetchPostData = () => {
+    if (!isDetailPage) {
+      prefetchTimer.current = setTimeout(() => {
+        mutatePostDetail(`/posts/${postId}`, () => swrOptions.fetcher(`/posts/${postId}`));
+      }, 1000);
+    }
+  };
+
+  const cancelPrefetch = () => {
+    clearTimeout(prefetchTimer.current);
+  };
+
   return (
     <Container>
-      <ImageWrapper onClick={navigateToDetailPage} isDetailPage={isDetailPage}>
+      <ImageWrapper
+        onClick={navigateToDetailPage}
+        isDetailPage={isDetailPage}
+        onMouseEnter={prefetchPostData}
+        onMouseLeave={cancelPrefetch}
+        onTouchStart={prefetchPostData}
+        onTouchEnd={cancelPrefetch}
+      >
         <Image
           src={image ? image : IMAGE_URLS.POST_DEFAULT_IMG}
           defaultImageUrl={IMAGE_URLS.POST_DEFAULT_IMG}
