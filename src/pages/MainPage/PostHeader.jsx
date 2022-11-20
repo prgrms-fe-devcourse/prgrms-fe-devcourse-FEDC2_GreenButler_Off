@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Profile, Modal } from 'components';
 import { useUserContext } from 'contexts/UserContext';
@@ -7,8 +7,9 @@ import theme from 'styles/theme';
 import useLocalToken from 'hooks/useLocalToken';
 import IconButton from 'components/basic/Icon/IconButton';
 import { MORE } from 'utils/constants/icons/names';
+import useSWRPostList from 'hooks/useSWRPostList';
 
-const PostHeader = ({ post, isDetailPage }) => {
+const PostHeader = ({ index, post, isDetailPage }) => {
   const {
     _id: postId,
     author: { _id, image, fullName },
@@ -17,39 +18,41 @@ const PostHeader = ({ post, isDetailPage }) => {
   const navigate = useNavigate();
   const [isModal, setIsModal] = useState(false);
   const [localToken] = useLocalToken();
+  const { mutateDeletion } = useSWRPostList();
 
-  const handleClickProfile = useCallback(() => {
+  const handleClickProfile = () => {
     navigate(`/user/${_id}`, {
       state: {
         userId: _id,
       },
     });
-  }, [navigate, _id]);
+  };
 
-  const handleClickMore = useCallback(() => {
+  const handleClickMore = () => {
     setIsModal(true);
-  }, []);
+  };
 
-  const handleUpdate = useCallback(() => {
+  const handleUpdate = () => {
     setIsModal(false);
     navigate(`/post/edit/${postId}`, {
       state: {
         post,
       },
     });
-  }, [postId, post, navigate]);
+  };
 
-  const handleDelete = useCallback(async () => {
+  const handleDelete = async () => {
     setIsModal(false);
     if (localToken && postId) {
       await onDeletePost(postId);
       navigate(-1);
+      index < 5 && mutateDeletion(postId);
     }
-  }, [localToken, postId, onDeletePost, navigate]);
+  };
 
-  const onClose = useCallback(() => {
+  const handleCloseModal = () => {
     setIsModal(false);
-  }, []);
+  };
 
   const isMyPost = useMemo(() => {
     return _id === currentUser.id && isDetailPage;
@@ -62,7 +65,7 @@ const PostHeader = ({ post, isDetailPage }) => {
         {isMyPost && (
           <>
             <IconButton name={MORE} size={20} onClick={handleClickMore} />
-            <Modal visible={isModal} onClose={onClose}>
+            <Modal visible={isModal} onClose={handleCloseModal}>
               <Modal.Custom>
                 <Buttons>
                   <UpdatePostButton onClick={handleUpdate}>수정</UpdatePostButton>

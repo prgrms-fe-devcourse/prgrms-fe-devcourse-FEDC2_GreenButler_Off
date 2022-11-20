@@ -10,7 +10,7 @@ export const channelId = '62b20b485baf8c52bfe6d453';
 export const getPosts = () => {
   return request({
     method: API_METHOD.GET,
-    url: `/posts/channel/${channelId}`,
+    url: `/posts/channel/${process.env.REACT_APP_CHANNEL_ID}`,
   });
 };
 
@@ -21,7 +21,7 @@ export const getPosts = () => {
 export const getPostsPart = ({ offset, limit }) => {
   return request({
     method: API_METHOD.GET,
-    url: `/posts/channel/${channelId}`,
+    url: `/posts/channel/${process.env.REACT_APP_CHANNEL_ID}`,
     params: {
       offset,
       limit,

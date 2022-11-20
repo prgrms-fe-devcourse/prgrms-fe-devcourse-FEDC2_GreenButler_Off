@@ -6,7 +6,7 @@ import theme from 'styles/theme';
 const PostItem = ({ index, post, isDetailPage }) => {
   return (
     <Article>
-      <PostHeader post={post} isDetailPage={isDetailPage} />
+      <PostHeader index={index} post={post} isDetailPage={isDetailPage} />
       <PostBody index={index} post={post} isDetailPage={isDetailPage} />
     </Article>
   );

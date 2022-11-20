@@ -1,8 +1,6 @@
 # 🌵 초록집사 
 
 반려 식물에 관한 정보를 공유할 수 있는 SNS 플랫폼
-
-[🔗 링크 ](https://green-butler-585a32.netlify.app/)
  
  
  <br/>
@@ -150,7 +148,7 @@
 
 <br />
 
-## 협업 규칙
+## 프로젝트 참고 문서
 
 [프로젝트 문서](https://prgrms.notion.site/30ebf14edf1b400298a1350cc8d6f9ab)
 
