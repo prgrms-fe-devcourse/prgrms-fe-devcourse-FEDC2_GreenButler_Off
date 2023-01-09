@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useUserContext } from 'contexts/UserContext';
 import { PageWrapper, LoginForm, Modal, Logo } from 'components';
+import { MODAL_LOGIN_FAIL_TITLE, MODAL_LOGIN_FAIL_DESCRIPTION } from 'utils/constants/messages';
 
 const LoginWrapper = styled.div`
   width: 100%;
@@ -54,8 +55,8 @@ const LoginPage = () => {
         <LoginForm onSubmit={handleSubmit}></LoginForm>
         <Modal visible={showModal} onClose={closeModal}>
           <Modal.Content
-            title="로그인에 실패했어요!"
-            description="이메일 및 비밀번호를 다시 확인해 주세요."
+            title={MODAL_LOGIN_FAIL_TITLE}
+            description={MODAL_LOGIN_FAIL_DESCRIPTION}
             onClose={closeModal}
           ></Modal.Content>
           <Modal.Button onClick={closeModal}>확인</Modal.Button>

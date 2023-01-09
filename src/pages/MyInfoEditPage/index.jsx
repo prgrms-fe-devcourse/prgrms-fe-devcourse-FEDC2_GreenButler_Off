@@ -4,6 +4,7 @@ import { Text, PageWrapper, Input, Modal } from 'components';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import theme from 'styles/theme';
+import { MODAL_CHANGE_PASSWORD_TITLE } from 'utils/constants/messages';
 
 const MyInfoEditPage = () => {
   const { onChangePassword } = useUserContext();
@@ -102,7 +103,7 @@ const MyInfoEditPage = () => {
         </UserInfo>
         {isModal && (
           <Modal visible={isModal} onClose={onClose}>
-            <Modal.Content title="비밀번호가 변경됐어요!" onClose={onClose} />
+            <Modal.Content title={MODAL_CHANGE_PASSWORD_TITLE} onClose={onClose} />
             <Modal.Button
               onClick={() => {
                 onClose();

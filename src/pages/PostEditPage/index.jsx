@@ -7,6 +7,7 @@ import useLocalToken from 'hooks/useLocalToken';
 import { imageToFile } from 'utils/functions/converter';
 import theme from 'styles/theme';
 import { useUserContext } from 'contexts/UserContext';
+import { MODAL_UPLOAD_IMAGE_TITLE, MODAL_UPLOAD_POST_TITLE } from 'utils/constants/messages';
 
 const { headerHeight } = theme.value;
 
@@ -85,13 +86,13 @@ const PostEditPage = () => {
     }
 
     if (!defaultImg && !BinaryImg) {
-      setModalMessage('이미지를 등록해 주세요!');
+      setModalMessage(MODAL_UPLOAD_IMAGE_TITLE);
       setIsModal(true);
       return;
     }
 
     if (!content) {
-      setModalMessage('게시글을 작성해 주세요!');
+      setModalMessage(MODAL_UPLOAD_POST_TITLE);
       setIsModal(true);
       return;
     }

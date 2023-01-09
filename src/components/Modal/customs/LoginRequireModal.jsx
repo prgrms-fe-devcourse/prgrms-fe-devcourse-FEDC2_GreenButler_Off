@@ -2,9 +2,10 @@ import { Modal } from 'components';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import theme from 'styles/theme';
-
-const MODAL_TITLE_LOGIN_REQUIRED = '로그인이 필요한 서비스입니다.';
-const MODAL_DESCRIPTION_LOGIN_REQUIRED = '로그인 화면으로 이동하시겠어요?';
+import {
+  MODAL_TITLE_LOGIN_REQUIRED,
+  MODAL_DESCRIPTION_LOGIN_REQUIRED,
+} from 'utils/constants/messages';
 
 const LoginRequireModal = ({ visible, onClose }) => {
   const navigate = useNavigate();

@@ -5,6 +5,7 @@ import { LOGOUT, KEY } from 'utils/constants/icons/names';
 import { useUserContext } from 'contexts/UserContext';
 import theme from 'styles/theme';
 import { useNavigate } from 'react-router-dom';
+import { MODAL_LOGOUT_DESCRIPTION, MODAL_LOGOUT_TITLE } from 'utils/constants/messages';
 
 const UserDetails = () => {
   const navigate = useNavigate();
@@ -70,8 +71,8 @@ const UserDetails = () => {
       {isLogoutModal && (
         <Modal visible={isLogoutModal} onClose={onCloseLogout}>
           <Modal.Content
-            title="로그아웃 하시겠어요?"
-            description="로그아웃 시 로그인 화면으로 이동됩니다."
+            title={MODAL_LOGOUT_TITLE}
+            description={MODAL_LOGOUT_DESCRIPTION}
             onClose={onCloseLogout}
           />
           <Modal.Button
